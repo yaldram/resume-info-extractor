@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  resume-info-extractor
+
+  Extract resume information using OPENAI API
+  
+Globals:
+  Function:
+    Timeout: 300 # five minutes
+
+Parameters:
+  ResumeBucketName:
+    Description: Name of the bucket that will hold the resumes
+    Type: String
+
+Resources:
+  ResumeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref ResumeBucketName
+
+  PdfdistLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: pdfdist-layer
+      ContentUri: pdfdist-layer/
+      CompatibleRuntimes:
+        - nodejs18.x
+        - nodejs16.x
+
+  ResumeInfoExtracterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: extractor/
+      Handler: app.lambdaHandler
+      Runtime: nodejs18.x
+      MemorySize: 2048
+      Layers:
+        - !Ref PdfdistLayer
+      Architectures:
+        - x86_64
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref ResumeBucketName
+      Events:
+        FileUpload:
+          Type: S3
+          Properties:
+            Bucket: !Ref ResumeBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: '.pdf'
+
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints: 
+        - app.ts
+        External: ["pdfjs-dist"]
+
+Outputs:
+  ResumeBucketName:
+    Value: !Ref ResumeBucketName
+    Description: S3 Bucket for storing resumes
+  FunctionArn:
+    Value: !Ref ResumeInfoExtracterFunction
+    Description: ResumeInfoExtracter function arn
