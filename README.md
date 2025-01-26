@@ -2,9 +2,17 @@
 
 Resume Info Extractor is a serverless application that automatically extracts information from PDF resumes uploaded to an Amazon S3 bucket. It utilizes AWS Lambda, OpenAI API, and MongoDB Atlas to process and store structured data from resumes. The project is bootstrapped using AWS SAM CLI and includes a Lambda layer for `pdf-dist` node_module for handling PDF extraction.
 
-## Prerequisites
+## How it works
+![workflow](https://pub-2e209747425f40cdacae2d98eae729f3.r2.dev/resume-extractor.png)
+- **Upload a PDF**: Resumes are uploaded to an S3 bucket, which triggers a Lambda.
+- **Automatic Processing**: Lambda function extracts data using OpenAI API and stores it in MongoDB.
+- **Retrieve Candidate Info**: Extracted details include:
+    - Personal Info: Name, Email, Phone Number
+    - Experience: Total years, Employment History
+    - Education: Degrees, Schools, Timelines
+    - Skills & Languages
 
-Before you begin, ensure you have the following:
+## Prerequisites
 
 -   AWS account with appropriate permissions.
 -   SAM CLI installed locally: [AWS SAM CLI Installation Guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
@@ -14,19 +22,19 @@ Before you begin, ensure you have the following:
 ## Installation
 
 1.  Clone the repository:
-    `git clone https://github.com/yaldram/resume-extractor.git
-    cd resume-extractor` 
+    ```bash
+    git clone https://github.com/yaldram/resume-extractor.git
+    cd resume-extractor
+    ```
 2.  Install dependencies and build the project using SAM CLI: 
-    `sam build` 
-3.  Deploy the application using SAM CLI:
-    `sam deploy --guided` 
-   
-## Usage
-
-1.  Upload PDF resumes to the designated S3 bucket.
-2.  The uploaded resumes trigger the Lambda function, which utilizes the OpenAI API to extract structured data, including candidate name, experience, companies worked for, skillset, and languages.
-3.  Extracted data is stored in MongoDB Atlas.
-    
+    ```bash
+    npm install
+    sam build
+    ```
+4.  Deploy the application using SAM CLI:
+    ```bash
+    sam deploy --guided
+    ``` 
 
 ## Environment Variables
 
@@ -35,23 +43,10 @@ Set the following environment variables in your AWS Lambda environment:
 -   `MONGO_URI`: MongoDB Atlas cluster URL for storing extracted data.
 -   `OPENAI_API_KEY`: OpenAI API key for accessing the OpenAI API.
 
-## Configuration Tips
-
-### Unique S3 Bucket Name
-
-When deploying the application using SAM CLI (`sam deploy --guided`), make sure to provide a unique name for your S3 bucket. S3 bucket names must be globally unique across AWS accounts.
-
-### Environment Variables in Lambda Function
-
-After deploying the application, navigate to the AWS Lambda Management Console. Locate the deployed Lambda function handling the resume extraction. Inside the function configuration, add the following environment variables:
-
--   **MONGO_URI**: MongoDB Atlas cluster URL for storing extracted data.
--   **OPENAI_API_KEY**: OpenAI API key for accessing the OpenAI API.
-
 ## Folder Structure
 
-- `extractor`: Lambda function to handle PDF extraction, using OPENAI API and add the extracted information to MongoDB.
--   `pdfdist-layer/`: Lambda layer containing pdf-dist module to handle PDF extraction.
+- `extractor`: Lambda function for PDF parsing and data extraction.
+- `pdfdist-layer/`: Lambda layer containing `pdf-dist` module to handle PDF extraction.
 
 ## SAM Template
 
